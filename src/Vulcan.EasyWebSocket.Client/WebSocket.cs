@@ -31,7 +31,7 @@ namespace Vulcan.EasyWebSocket.Client
 
         private void SendHeaders()
         {
-            string header = $"GET {Uri.LocalPath} HTTP/1.1\r\n";
+            string header = $"GET {Uri.PathAndQuery} HTTP/1.1\r\n";
             header += $"Host: {Uri.Host}:{Uri.Port}\r\n";
             header += "Accept: */*\r\n";
             header += "User-Agent: EasyWebSocket/dev_0.1\r\n";
@@ -40,7 +40,7 @@ namespace Vulcan.EasyWebSocket.Client
             header += "Sec-WebSocket-Version: 13\r\n";
             header += "Upgrade: websocket\r\n\r\n";
 
-            client.Client.Send(Encoding.ASCII.GetBytes(header));
+            stream.Write(Encoding.ASCII.GetBytes(header));
         }
 
         private void ReceiveThread()
