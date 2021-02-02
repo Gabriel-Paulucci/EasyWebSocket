@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using Vulcan.EasyWebSocket.Server.Types;
+using Vulcan.EasyWebSocket.Server.Client;
 
 namespace Vulcan.EasyWebSocket.Server.Tcp
 {
@@ -13,6 +14,8 @@ namespace Vulcan.EasyWebSocket.Server.Tcp
         private readonly TcpListener _tcpListener;
         private readonly Thread _receivedConnection;
         private readonly WsServer _server;
+
+        private const string ShaKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
         public TcpServer(WsServer server, IPEndPoint endPoint)
         {
@@ -33,7 +36,7 @@ namespace Vulcan.EasyWebSocket.Server.Tcp
             {
                 TcpClient client = _tcpListener.EndAcceptTcpClient(ar);
 
-                ReceiveHandshaking(client);
+                Handshaking(client);
 
                 _tcpListener.BeginAcceptTcpClient(callback, ar.AsyncState);
             }
@@ -41,36 +44,51 @@ namespace Vulcan.EasyWebSocket.Server.Tcp
             _tcpListener.BeginAcceptTcpClient(callback, _tcpListener);
         }
 
-        public async void ReceiveHandshaking(TcpClient client)
+        public async void Handshaking(TcpClient client)
         {
             NetworkStream networkStream = client.GetStream();
-            byte[] buffer = new byte[client.Available];
-            await networkStream.ReadAsync(buffer, 0, buffer.Length);
+            byte[] bufferReceive = new byte[client.Available];
+            await networkStream.ReadAsync(bufferReceive, 0, bufferReceive.Length);
 
-            ReadHeaders();
+            Dictionary<string, string> headers = new Dictionary<string, string>();
 
-            void ReadHeaders()
+            string[] request = Encoding.ASCII.GetString(bufferReceive).Split(Environment.NewLine);
+
+            headers.Add("Method", request[0]);
+
+            for (int i = 1; i < request.Length - 2; i++)
             {
-                HeapString bufferRequest = new HeapString();
-
-                bufferRequest.Set(Encoding.ASCII.GetString(buffer));
-
-                Span<HeapString> request = stackalloc HeapString[0];
-
-                Span<Header> headers = stackalloc Header[request.Length - 2];
-
-                headers[0].Set("Method", request[0]);
-
-                for (int i = 1; i < request.Length; i++)
+                if (request[i].Contains(':'))
                 {
-                    if (request[i].Contains(':'))
-                    {
-                        Span<string> value = request[i].Split(':');
+                    Console.WriteLine(request[i]);
 
-                        headers[i].Set(value[0], value[1]);
-                    }
+                    string[] values = request[i].Split(':');
+
+                    headers.Add(values[0], values[1].TrimStart());
                 }
             }
+
+            if (headers["Method"].StartsWith("GET"))
+            {
+                string response = "HTTP/1.1 101 Switching Protocols" + Environment.NewLine;
+                response += "Connection: Upgrade" + Environment.NewLine;
+                response += "Upgrade: websocket" + Environment.NewLine;
+
+                byte[] hash = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(headers["Sec-WebSocket-Key"] + ShaKey));
+                response += "Sec-WebSocket-Accept: " + Convert.ToBase64String(hash);
+
+                response += Environment.NewLine + Environment.NewLine;
+
+                Console.WriteLine();
+                Console.WriteLine(response);
+
+                byte[] bufferSend = Encoding.UTF8.GetBytes(response);
+
+                await networkStream.WriteAsync(bufferSend, 0, bufferSend.Length);
+            }
+
+            WsClient wsClient = new WsClient(client);
+            _server.OnClientConnect(wsClient);
         }
     }
 }

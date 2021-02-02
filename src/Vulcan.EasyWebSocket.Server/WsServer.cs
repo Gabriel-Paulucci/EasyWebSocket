@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Vulcan.EasyWebSocket.Server.Client;
 using Vulcan.EasyWebSocket.Server.Tcp;
 
 namespace Vulcan.EasyWebSocket.Server
@@ -11,6 +12,7 @@ namespace Vulcan.EasyWebSocket.Server
     {
         private readonly TcpServer _tcpServer;
         private readonly IPEndPoint _endPoint;
+        private List<WsClient> clients;
 
         public WsServer(string ip, int port)
         {
@@ -27,6 +29,11 @@ namespace Vulcan.EasyWebSocket.Server
         {
             _tcpServer.Start();
             await Task.Delay(-1);
+        }
+
+        public void OnClientConnect(WsClient client)
+        {
+            clients.Add(client);
         }
     }
 }
