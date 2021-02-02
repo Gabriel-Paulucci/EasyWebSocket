@@ -9,9 +9,8 @@ namespace Server
     {
         static async Task Main(string[] args)
         {
-            WebSocketServer server = new WebSocketServer("127.0.0.1", 3000);
-            server.Start();
-            await Task.Delay(-1);
+            WsServer server = new WsServer("127.0.0.1", 3000);
+            await server.StartAsync();
         }
     }
 }
