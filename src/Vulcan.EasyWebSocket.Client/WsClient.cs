@@ -83,12 +83,10 @@ namespace Vulcan.EasyWebSocket.Client
 
             byte[] hash = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(_guid + _shaKey));
 
-            if (!headers["sec-websocket-accept"].Equals(Convert.ToBase64String(hash)))
+            if (headers["sec-websocket-accept"].Equals(Convert.ToBase64String(hash)))
             {
-                Console.WriteLine("erro");
+                _receiveMessage.Start();
             }
-
-            _receiveMessage.Start();
         }
 
         private async void ReceiveMessage()

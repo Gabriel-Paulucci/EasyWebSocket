@@ -50,11 +50,10 @@ namespace Vulcan.EasyWebSocket.Server.Tcp
             byte[] bufferReceive = new byte[client.Available];
             await networkStream.ReadAsync(bufferReceive, 0, bufferReceive.Length);
 
-            Dictionary<string, string> headers = new Dictionary<string, string>();
-
             string[] request = Encoding.ASCII.GetString(bufferReceive).Split(Environment.NewLine);
 
-            headers.Add("Method", request[0]);
+            Dictionary<string, string> headers = new Dictionary<string, string>();
+            headers.Add("method", request[0]);
 
             for (int i = 1; i < request.Length - 2; i++)
             {
@@ -64,11 +63,11 @@ namespace Vulcan.EasyWebSocket.Server.Tcp
 
                     string[] values = request[i].Split(':');
 
-                    headers.Add(values[0], values[1].TrimStart());
+                    headers.Add(values[0].ToLower(), values[1].TrimStart());
                 }
             }
 
-            if (headers["Method"].StartsWith("GET"))
+            if (headers["method"].StartsWith("GET"))
             {
                 string response = "HTTP/1.1 101 Switching Protocols" + Environment.NewLine;
                 response += "Connection: Upgrade" + Environment.NewLine;
