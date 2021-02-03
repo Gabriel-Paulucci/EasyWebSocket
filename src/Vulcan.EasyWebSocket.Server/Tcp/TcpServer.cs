@@ -15,7 +15,7 @@ namespace Vulcan.EasyWebSocket.Server.Tcp
         private readonly Thread _receivedConnection;
         private readonly WsServer _server;
 
-        private const string ShaKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        private const string _shaKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
         public TcpServer(WsServer server, IPEndPoint endPoint)
         {
@@ -74,7 +74,7 @@ namespace Vulcan.EasyWebSocket.Server.Tcp
                 response += "Connection: Upgrade" + Environment.NewLine;
                 response += "Upgrade: websocket" + Environment.NewLine;
 
-                byte[] hash = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(headers["Sec-WebSocket-Key"] + ShaKey));
+                byte[] hash = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(headers["Sec-WebSocket-Key"] + _shaKey));
                 response += "Sec-WebSocket-Accept: " + Convert.ToBase64String(hash);
 
                 response += Environment.NewLine + Environment.NewLine;

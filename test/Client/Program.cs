@@ -8,10 +8,8 @@ namespace Client
     {
         static async Task Main(string[] args)
         {
-            WebSocket webSocket = new WebSocket("ws://127.0.0.1:3000/ws/");
-            await webSocket.Open();
-
-            await Task.Delay(-1);
+            WsClient webSocket = new WsClient("ws://127.0.0.1:3000/ws/");
+            await webSocket.StartAsync();
         }
     }
 }
