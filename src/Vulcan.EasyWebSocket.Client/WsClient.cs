@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -43,7 +45,7 @@ namespace Vulcan.EasyWebSocket.Client
             await Task.Delay(-1);
         }
 
-        private async void Handshaking()
+        private void Handshaking()
         {
             string request = $"GET {_uri.PathAndQuery} HTTP/1.1" + Environment.NewLine;
             request += $"Host: {_uri.Host}:{_uri.Port}" + Environment.NewLine;
@@ -58,16 +60,24 @@ namespace Vulcan.EasyWebSocket.Client
 
             byte[] bufferRequest = Encoding.UTF8.GetBytes(request);
 
-            await _stream.WriteAsync(bufferRequest, 0, bufferRequest.Length);
+            _stream.BeginWrite(bufferRequest, 0, bufferRequest.Length, (ar) =>
+            {
+                _stream.EndWrite(ar);
+            }, null);
 
             byte[] bufferResponse = new byte[_client.Available];
 
-            await _stream.ReadAsync(bufferResponse, 0, bufferResponse.Length);
+            _stream.BeginRead(bufferResponse, 0, bufferResponse.Length, (ar) =>
+            {
+                _stream.EndRead(ar);
+            }, null);
 
             string[] response = Encoding.UTF8.GetString(bufferResponse).Split(Environment.NewLine);
 
             Dictionary<string, string> headers = new Dictionary<string, string>();
             headers.Add("method", response[0]);
+
+            Console.WriteLine(response[0]);
 
             for (int i = 1; i < response.Length - 2; i++)
             {
@@ -89,18 +99,65 @@ namespace Vulcan.EasyWebSocket.Client
             }
         }
 
-        private async void ReceiveMessage()
+        private void ReceiveMessage()
         {
-            while (true)
+            byte[] buffer = new byte[2];
+            bool fin = false;
+            bool rsv1 = false;
+            bool rsv2 = false;
+            bool rsv3 = false;
+            byte opcode;
+            bool mask = false;
+            byte length;
+            byte[] payload = null;
+
+            void callback(IAsyncResult ar)
             {
-                byte[] buffer = new byte[4096];
+                _stream.EndRead(ar);
 
-                await _stream.ReadAsync(buffer, 0, buffer.Length);
+                fin = (buffer[0] & 1 << 7) > 0;
+                rsv1 = (buffer[0] & 1 << 6) > 0;
+                rsv2 = (buffer[0] & 1 << 5) > 0;
+                rsv3 = (buffer[0] & 1 << 4) > 0;
+                opcode = (byte)(buffer[0] & 15);
+                mask = (buffer[1] & 1 << 7) > 0;
+                length = (byte)(buffer[1] & 127);
 
-                string teste = Encoding.ASCII.GetString(buffer);
+                if (length <= 125)
+                {
+                    payload = new byte[length];
 
-                Console.WriteLine(teste);
+                    void getPayload(IAsyncResult ar)
+                    {
+                        _stream.EndRead(ar);
+                    }
+
+                    _stream.BeginRead(payload, 0, payload.Length, getPayload, ar.AsyncState);
+                }
+                else if (length == 126)
+                {
+
+                }
+                else
+                {
+
+                }
+
+                Console.WriteLine(Encoding.UTF8.GetString(payload));
+
+                _stream.BeginRead(buffer, 0, buffer.Length, callback, ar.AsyncState);
             }
+
+            void reset()
+            {
+                fin = false;
+                rsv1 = false;
+                rsv2 = false;
+                rsv3 = false;
+                opcode = 0;
+            }
+
+            _stream.BeginRead(buffer, 0, buffer.Length, callback, _stream);
         }
 
         public void Dispose()
