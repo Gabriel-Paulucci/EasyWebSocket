@@ -1,48 +1,43 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using Vulcan.EasyWebSocket.Uitl.Interfaces;
+using Vulcan.EasyWebSocket.Uitl.Models;
+using Vulcan.EasyWebSocket.Uitl.Stream;
 
 namespace Vulcan.EasyWebSocket.Client
 {
-    public class WsClient : IDisposable
+    public class WsClient : WsClientBase, IDisposable
     {
-        private TcpClient _client;
         private NetworkStream _stream;
         private readonly Uri _uri;
-        private readonly Thread _receiveMessage;
         private readonly string _guid;
         private const string _shaKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        private readonly Receive _receive;
 
         public WsClient(string url)
         {
+            Client = new TcpClient();
             _uri = new Uri(url);
-            _client = new TcpClient();
-            _receiveMessage = new Thread(ReceiveMessage);
             _guid = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            _receive = new Receive(this);
         }
 
         private async void Init()
         {
-            await _client.ConnectAsync(_uri.Host, _uri.Port);
-            _stream = _client.GetStream();
+            await Client.ConnectAsync(_uri.Host, _uri.Port);
+            _stream = Client.GetStream();
             Handshaking();
+            _receive.ReceivePackege += ReceivePackege;
         }
 
-        public void Start()
+        private void ReceivePackege(object sender, Package e)
         {
-            Init();
-        }
-
-        public async Task StartAsync()
-        {
-            Init();
-            await Task.Delay(-1);
+            e.Process();
+            Console.WriteLine(Encoding.UTF8.GetString(e.Data));
         }
 
         private void Handshaking()
@@ -65,7 +60,7 @@ namespace Vulcan.EasyWebSocket.Client
                 _stream.EndWrite(ar);
             }, null);
 
-            byte[] bufferResponse = new byte[_client.Available];
+            byte[] bufferResponse = new byte[Client.Available];
 
             _stream.BeginRead(bufferResponse, 0, bufferResponse.Length, (ar) =>
             {
@@ -95,75 +90,25 @@ namespace Vulcan.EasyWebSocket.Client
 
             if (headers["sec-websocket-accept"].Equals(Convert.ToBase64String(hash)))
             {
-                _receiveMessage.Start();
+                _receive.Start();
             }
         }
 
-        private void ReceiveMessage()
+        public void Start()
         {
-            byte[] buffer = new byte[2];
-            bool fin = false;
-            bool rsv1 = false;
-            bool rsv2 = false;
-            bool rsv3 = false;
-            byte opcode;
-            bool mask = false;
-            byte length;
-            byte[] payload = null;
+            Init();
+        }
 
-            void callback(IAsyncResult ar)
-            {
-                _stream.EndRead(ar);
-
-                fin = (buffer[0] & 1 << 7) > 0;
-                rsv1 = (buffer[0] & 1 << 6) > 0;
-                rsv2 = (buffer[0] & 1 << 5) > 0;
-                rsv3 = (buffer[0] & 1 << 4) > 0;
-                opcode = (byte)(buffer[0] & 15);
-                mask = (buffer[1] & 1 << 7) > 0;
-                length = (byte)(buffer[1] & 127);
-
-                if (length <= 125)
-                {
-                    payload = new byte[length];
-
-                    void getPayload(IAsyncResult ar)
-                    {
-                        _stream.EndRead(ar);
-                    }
-
-                    _stream.BeginRead(payload, 0, payload.Length, getPayload, ar.AsyncState);
-                }
-                else if (length == 126)
-                {
-
-                }
-                else
-                {
-
-                }
-
-                Console.WriteLine(Encoding.UTF8.GetString(payload));
-
-                _stream.BeginRead(buffer, 0, buffer.Length, callback, ar.AsyncState);
-            }
-
-            void reset()
-            {
-                fin = false;
-                rsv1 = false;
-                rsv2 = false;
-                rsv3 = false;
-                opcode = 0;
-            }
-
-            _stream.BeginRead(buffer, 0, buffer.Length, callback, _stream);
+        public async Task StartAsync()
+        {
+            Init();
+            await Task.Delay(-1);
         }
 
         public void Dispose()
         {
-            _client?.Dispose();
-            _client = null;
+            Client?.Dispose();
+            Client = null;
             _stream?.Dispose();
             _stream = null;
         }

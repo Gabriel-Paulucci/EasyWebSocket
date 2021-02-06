@@ -5,15 +5,17 @@ VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{244783DC-57B4-4FBA-B23C-11B10DCE6207}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vulcan.EasyWebSocket.Client", "src\Vulcan.EasyWebSocket.Client\Vulcan.EasyWebSocket.Client.csproj", "{29685163-C4BE-4A2D-9A86-BBE49C63C1B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vulcan.EasyWebSocket.Client", "src\Vulcan.EasyWebSocket.Client\Vulcan.EasyWebSocket.Client.csproj", "{29685163-C4BE-4A2D-9A86-BBE49C63C1B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vulcan.EasyWebSocket.Server", "src\Vulcan.EasyWebSocket.Server\Vulcan.EasyWebSocket.Server.csproj", "{7DE81251-25F5-477E-8B55-BA3F26A2B905}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vulcan.EasyWebSocket.Server", "src\Vulcan.EasyWebSocket.Server\Vulcan.EasyWebSocket.Server.csproj", "{7DE81251-25F5-477E-8B55-BA3F26A2B905}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A61DE310-609D-44E6-8C65-E66BD6B90D88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Client", "test\Client\Client.csproj", "{69DD7966-0F35-40F9-B126-82DF5B224571}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Client", "test\Client\Client.csproj", "{69DD7966-0F35-40F9-B126-82DF5B224571}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "test\Server\Server.csproj", "{D14D671F-0455-4F2F-B893-4270E6C805E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "test\Server\Server.csproj", "{D14D671F-0455-4F2F-B893-4270E6C805E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vulcan.EasyWebSocket.Uitl", "src\Vulcan.EasyWebSocket.Uitl\Vulcan.EasyWebSocket.Uitl.csproj", "{386F24A3-7FE5-4964-9782-9EED688D60D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +39,10 @@ Global
 		{D14D671F-0455-4F2F-B893-4270E6C805E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D14D671F-0455-4F2F-B893-4270E6C805E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D14D671F-0455-4F2F-B893-4270E6C805E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{386F24A3-7FE5-4964-9782-9EED688D60D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{386F24A3-7FE5-4964-9782-9EED688D60D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{386F24A3-7FE5-4964-9782-9EED688D60D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{386F24A3-7FE5-4964-9782-9EED688D60D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +52,7 @@ Global
 		{7DE81251-25F5-477E-8B55-BA3F26A2B905} = {244783DC-57B4-4FBA-B23C-11B10DCE6207}
 		{69DD7966-0F35-40F9-B126-82DF5B224571} = {A61DE310-609D-44E6-8C65-E66BD6B90D88}
 		{D14D671F-0455-4F2F-B893-4270E6C805E9} = {A61DE310-609D-44E6-8C65-E66BD6B90D88}
+		{386F24A3-7FE5-4964-9782-9EED688D60D2} = {244783DC-57B4-4FBA-B23C-11B10DCE6207}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BE9A607D-EC4E-46E5-A230-717A832AA9A5}
